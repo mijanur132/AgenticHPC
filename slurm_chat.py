@@ -5,17 +5,13 @@ from typing import TypedDict, Literal, Union
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 
-# -----------------------
-# 1. State definition
-# -----------------------
+
 class State(TypedDict):
     input: str
     response: str
-    next: Literal["llm", "slurm_submit", "END"]
+    next: Literal["decision", "slurm_submit", "END"]
 
-# -----------------------
-# 2. LLM setup (via vLLM or OpenAI-compatible API)
-# -----------------------
+
 os.environ["OPENAI_API_KEY"] = "dummy"
 os.environ["OPENAI_BASE_URL"] = "http://localhost:8000/v1"  # vLLM or OpenRouter-compatible server
 
@@ -25,16 +21,6 @@ llm = ChatOpenAI(
     model_name="nemotron"   # Match --served-model-name
 )
 
-# -----------------------
-# 3. Tool: Check idle nodes via sinfo
-# -----------------------
-# def check_idle_nodes() -> str:
-#     try:
-#         output = subprocess.check_output(["sinfo", "-o", "%n %t"], stderr=subprocess.STDOUT).decode()
-#         idle = [line for line in output.splitlines() if "idle" in line.lower()]
-#         return "\n".join(idle) or "No idle nodes found."
-#     except subprocess.CalledProcessError as e:
-#         return f"Error calling sinfo: {e.output.decode()}"
 
 def run_submit_script() -> str:
     try:
@@ -53,14 +39,11 @@ def slurm_submit_node(state: State) -> State:
         "next": "END"
     }
 
-# -----------------------
-# 4. LLM node
-# -----------------------
-def llm_node(state: State) -> State:
+def decision_node(state: State) -> State:
     prompt = state["input"]
     result = llm.invoke(prompt).content
 
-    # Naive tool routing based on keywords (replace with better logic or tool-calling LLM)
+   
     if "submit" in prompt.lower():
         next_step = "slurm_submit"
     else:
@@ -77,13 +60,13 @@ def llm_node(state: State) -> State:
 # -----------------------
 graph = StateGraph(State)
 
-graph.add_node("llm", llm_node)
+graph.add_node("decision", decision_node)
 graph.add_node("slurm_submit", slurm_submit_node)
 
-graph.set_entry_point("llm")
+graph.set_entry_point("decision")
 
 graph.add_conditional_edges(
-    "llm",
+    "decision",
     lambda state: state["next"],
     {
         "slurm_submit": "slurm_submit",
@@ -107,6 +90,6 @@ if __name__ == "__main__":
         user_input = input ("User: ")
         if user_input.lower() in ["quit", "End"]:
             break
-        result = app.invoke({"input": user_input, "response": "", "next": "llm"})
+        result = app.invoke({"input": user_input, "response": "", "next": "decision"})
         print(">> Q:", result["input"])
         print(">> Agent:", result["response"])
