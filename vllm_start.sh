@@ -2,9 +2,10 @@
 #RUN SALLOC FIRST............
 #  Interactive compute node – modules & env already loaded                    #
 ###############################################################################
+
+
 module load craype-accel-amd-gfx90a PrgEnv-gnu rocm/6.3.1 gcc/12.2.0
 source /autofs/nccs-svm1_sw/frontier/python/3.10/miniforge3/23.11.0/etc/profile.d/conda.sh
-
 conda activate vllm-rocm
 
 # Stay fully offline
