@@ -17,7 +17,7 @@ EMB_VALUES = [384, 768, 1024, 2048, 4096]
 LR_VALUES = [round(lr, 5) for lr in np.linspace(0.005, 0.0000005, 100).tolist()]
 TOTAL_SEARCH_SPACE = len(EMB_VALUES) * len(LR_VALUES)
 SCORE_THRESHOLD = 185 # Stop when the best score reaches this value
-MAX_TRIALS = 20
+MAX_TRIALS = 3
 
 def log_message(agent_id: int, message: str):
     """Prints a message with a timestamp and agent ID."""
@@ -31,8 +31,20 @@ def log_message(agent_id: int, message: str):
     retry=retry_if_exception_type(Exception))
 def safe_llm_call(agent_id: int, prompt: str) -> str:
     log_message(agent_id, "📤 Calling LLM...")
+    start_time = time.time()
     response = llm.invoke(prompt)
-    log_message(agent_id, "📥 Received LLM response.")
+    end_time = time.time()
+    duration = end_time - start_time
+    usage = getattr(response, "response_metadata", {}).get("token_usage", {})
+    prompt_tokens = usage.get("prompt_tokens", None)
+    completion_tokens = usage.get("completion_tokens", None)
+    total_tokens = usage.get("total_tokens", None)
+
+    if total_tokens:
+        print(f" Time: {duration:.2f}s | Tokens: {total_tokens} | Throughput: {total_tokens / duration:.2f} tokens/sec")
+    else:
+        print(f" Time: {duration:.2f}s (Token usage info not available)")
+
     return response.content.strip()
 
 # --- Utility Functions ---
@@ -195,6 +207,8 @@ def agent_worker(agent_id: int, shared_state: Dict, lock: threading.Lock):
         with lock:
             log_message(agent_id, f"📝 [LOCKED] Updating shared state with score {score:.4f} for {key}.")
             shared_state['tried'][key] = score
+            print(f"--- 'tried' dictionary updated by Agent-{agent_id:02d} ---")
+            print(shared_state['tried'])
             if score > shared_state['best_score']:
                 log_message(agent_id, f"🎉 New best score found! {score:.4f}")
                 shared_state['best_score'] = score
@@ -203,7 +217,7 @@ def agent_worker(agent_id: int, shared_state: Dict, lock: threading.Lock):
                     log_message(agent_id, f"🏆 SCORE THRESHOLD REACHED! Signaling all agents to stop.")
                     shared_state['stop_signal'] = True
 
-def monitor_progress(shared_state: Dict, lock: threading.Lock, stop_event: threading.Event, interval: int = 60):
+def monitor_progress(shared_state: Dict, lock: threading.Lock, stop_event: threading.Event, interval: int = 300):
     while not stop_event.is_set():
         time.sleep(interval)
         with lock:
