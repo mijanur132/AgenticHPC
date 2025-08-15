@@ -1,0 +1,3 @@
+[submodule "climate-vit"]
+	path = climate-vit
+	url = git@github.com:jqyin/climate-vit.git
