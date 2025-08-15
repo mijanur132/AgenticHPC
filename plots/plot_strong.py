@@ -16,7 +16,7 @@ ideal_times = k / (agents ** p)
 plt.figure(figsize=(10, 5))
 plt.yscale('log')
 bar_width = 2
-plt.bar(agents, time_s, width=bar_width, color='#3A86FF', label="AgentX")
+plt.bar(agents, time_s, width=bar_width, color='#3A86FF', label="Agentic System")
 
 # Ideal dashed line
 plt.plot(agents, ideal_times, '--', color='black', linewidth=4, label='Ideal')

@@ -27,8 +27,8 @@ steps = np.arange(2, 2 * len(start_loss) + 1, 2) #np.arange(1, len(start_loss) +
 
 # Plot
 plt.figure(figsize=(10, 5))
-plt.plot(steps, final_loss, label="Initial (Randomly Selected Parameters)", linewidth=4, color="#3A86FF")
-plt.plot(steps, start_loss, label="Final (Agent Selected Parameters)", linewidth=4, color="black", linestyle='--')
+plt.plot(steps, final_loss, label="Randomly Selected Parameters", linewidth=4, color='purple', linestyle='--')
+plt.plot(steps, start_loss, label="Agent Selected Parameters", linewidth=4, color="#3A86FF")
 
 # Aesthetics
 plt.xlabel('Step', fontsize=24)

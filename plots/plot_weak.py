@@ -17,7 +17,7 @@ plt.figure(figsize=(10, 5))
 
 # Bar plot for actual times
 bar_width = 2
-plt.bar(agents, adjusted_time_s, width=bar_width, color='#3A86FF', label="AgentX")
+plt.bar(agents, adjusted_time_s, width=bar_width, color='#3A86FF', label="Agentic System")
 
 # Ideal (power-law) scaling line
 # plt.plot(agents, ideal_times, '--', color='black', linewidth=2, label='Ideal (p=0.3)')

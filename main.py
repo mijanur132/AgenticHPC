@@ -17,7 +17,7 @@ EMB_VALUES = [384, 768, 1024, 2048, 4096]
 LR_VALUES = [round(lr, 5) for lr in np.linspace(0.005, 0.0000005, 100).tolist()]
 TOTAL_SEARCH_SPACE = len(EMB_VALUES) * len(LR_VALUES)
 SCORE_THRESHOLD = 185 # Stop when the best score reaches this value
-MAX_TRIALS = 3
+MAX_TRIALS = 120
 
 def log_message(agent_id: int, message: str):
     """Prints a message with a timestamp and agent ID."""
@@ -128,10 +128,12 @@ Based on the results so far, select up to **5** new, promising, untried `(embedd
 - **Available Embedding Sizes**: {EMB_VALUES}
 - **Available Learning Rates**: A range from {LR_VALUES[0]} to {LR_VALUES[-1]}
 Respond with a Python list of tuples, like: `[(1024, 0.00123), (2048, 0.00050)]`
-It should be the last thing you write.
+- **briefly describe how did you reach your result before the tuples. write your reasoning process in 10 sentences. Only important parts.
+-Tuples should be the last thing you write.
 """
     try:
         response = safe_llm_call(agent_id, prompt)
+        print("response:", response)
         suggested_params = parse_llm_response(response)
     except Exception as e:
         log_message(agent_id, f"❌ An error occurred during LLM call: {e}")
@@ -246,7 +248,8 @@ if __name__ == "__main__":
 
     try:
         with open('.nemotron_token', 'r') as token_file: TOKEN = token_file.readline().strip()
-        llm = ChatOpenAI(api_key=f"{TOKEN}", base_url="https://obsidian.ccs.ornl.gov/ai/nemotron/api/v1", model_name="Llama-3_1-Nemotron-Ultra-253B-v1-FP8")
+        #llm = ChatOpenAI(api_key=f"{TOKEN}", base_url="https://obsidian.ccs.ornl.gov/ai/nemotron/api/v1", model_name="Llama-3_1-Nemotron-Ultra-253B-v1-FP8")
+        llm = ChatOpenAI(api_key=f"{TOKEN}", base_url="https://obsidian.ccs.ornl.gov/ai/nemotron/api/v1", model_name="gpt-oss-120b")
     except FileNotFoundError:
         print("❌ Token file '.nemotron_token' not found. Exiting.")
         exit(1)
